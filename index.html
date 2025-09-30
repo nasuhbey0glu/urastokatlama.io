@@ -143,6 +143,55 @@
             text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
         }
 
+        .slap-button {
+            background: linear-gradient(45deg, #ff6b6b, #ee5a24);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 1.5rem;
+            border-radius: 50px;
+            cursor: pointer;
+            margin-top: 2rem;
+            box-shadow: 0 8px 20px rgba(255, 107, 107, 0.3);
+            transition: all 0.3s ease;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .slap-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 25px rgba(255, 107, 107, 0.4);
+            background: linear-gradient(45deg, #ff5252, #d63031);
+        }
+
+        .slap-button:active {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 15px rgba(255, 107, 107, 0.3);
+        }
+
+        .slap-button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .video-container {
+            position: relative;
+            display: none;
+            max-width: 300px;
+            height: auto;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+
+        .video-container video {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+
         @media (max-width: 768px) {
             .title {
                 font-size: 2rem;
@@ -163,15 +212,25 @@
         <h1 class="title">Uras Tokat Oyunu</h1>
         <div class="image-container" id="imageContainer">
             <img src="uras.png" alt="Uras" class="uras-image" id="urasImage">
+            <div class="video-container" id="videoContainer">
+                <video id="slapVideo" preload="auto">
+                    <source src="video.mp4" type="video/mp4">
+                    Tarayıcınız video oynatmayı desteklemiyor.
+                </video>
+            </div>
         </div>
+        <button class="slap-button" id="slapButton">👋 TOKAT AT</button>
         <div class="counter" id="counter">Tıklama Sayısı: 0</div>
-        <p class="instructions">Ekrana tıklayarak tokat atın! 👋</p>
+        <p class="instructions">Butona tıklayarak tokat atın! 👋</p>
     </div>
 
     <script>
         let clickCount = 0;
         const imageContainer = document.getElementById('imageContainer');
         const urasImage = document.getElementById('urasImage');
+        const videoContainer = document.getElementById('videoContainer');
+        const slapVideo = document.getElementById('slapVideo');
+        const slapButton = document.getElementById('slapButton');
         const counter = document.getElementById('counter');
         const body = document.body;
 
@@ -230,29 +289,41 @@
             }, 1000);
         }
 
-        // Ana tıklama fonksiyonu
-        function handleClick(event) {
+        // Video oynatma fonksiyonu
+        function playSlapVideo() {
+            // Görseli gizle, videoyu göster
+            urasImage.style.display = 'none';
+            videoContainer.style.display = 'block';
+            
+            // Butonu devre dışı bırak
+            slapButton.disabled = true;
+            slapButton.textContent = '⏳ Video Oynatılıyor...';
+            
+            // Videoyu baştan başlat ve oynat
+            slapVideo.currentTime = 0;
+            slapVideo.play();
+        }
+
+        // Video bittiğinde çağrılacak fonksiyon
+        function onVideoEnded() {
+            // Videoyu gizle, görseli göster
+            videoContainer.style.display = 'none';
+            urasImage.style.display = 'block';
+            
+            // Butonu tekrar aktif et
+            slapButton.disabled = false;
+            slapButton.textContent = '👋 TOKAT AT';
+        }
+
+        // Buton tıklama fonksiyonu
+        function handleButtonClick() {
             clickCount++;
-            
-            // Animasyon ekle
-            urasImage.classList.add('slap-animation');
-            
-            // Ses efekti çal
-            playSlapSound();
-            
-            // Tıklama efekti oluştur
-            createClickEffect(event.clientX, event.clientY);
-            
-            // Tokat emojisi oluştur
-            createSlapEmoji(event.clientX, event.clientY);
             
             // Sayaç güncelle
             counter.textContent = `Tıklama Sayısı: ${clickCount}`;
             
-            // Animasyonu kaldır
-            setTimeout(() => {
-                urasImage.classList.remove('slap-animation');
-            }, 300);
+            // Video oynat
+            playSlapVideo();
             
             // Başarı mesajları
             if (clickCount === 10) {
@@ -264,13 +335,14 @@
             }
         }
 
-        // Event listener ekle
-        body.addEventListener('click', handleClick);
+        // Event listener'ları ekle
+        slapButton.addEventListener('click', handleButtonClick);
+        slapVideo.addEventListener('ended', onVideoEnded);
 
         // Sayfa yüklendiğinde hoş geldin mesajı
         window.addEventListener('load', () => {
             setTimeout(() => {
-                alert('🎮 Uras Tokat Oyununa Hoş Geldiniz!\n\nEkrana tıklayarak tokat atabilirsiniz!');
+                alert('🎮 Uras Tokat Oyununa Hoş Geldiniz!\n\n"TOKAT AT" butonuna tıklayarak video oynatabilirsiniz!');
             }, 500);
         });
     </script>
