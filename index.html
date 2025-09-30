@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Uras Tokat Oyunu</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            overflow: hidden;
+        }
+
+        .container {
+            text-align: center;
+            position: relative;
+        }
+
+        .title {
+            color: white;
+            font-size: 3rem;
+            margin-bottom: 2rem;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+            animation: pulse 2s infinite;
+        }
+
+        .image-container {
+            position: relative;
+            display: inline-block;
+            transition: transform 0.1s ease;
+        }
+
+        .uras-image {
+            max-width: 300px;
+            height: auto;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            transition: all 0.3s ease;
+        }
+
+        .image-container:hover .uras-image {
+            transform: scale(1.05);
+        }
+
+        .counter {
+            color: white;
+            font-size: 2rem;
+            margin-top: 2rem;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+            background: rgba(255,255,255,0.2);
+            padding: 1rem 2rem;
+            border-radius: 50px;
+            backdrop-filter: blur(10px);
+        }
+
+        .slap-animation {
+            animation: slap 0.3s ease-in-out;
+        }
+
+        @keyframes slap {
+            0% { transform: rotate(0deg) scale(1); }
+            25% { transform: rotate(-10deg) scale(1.1); }
+            50% { transform: rotate(10deg) scale(0.9); }
+            75% { transform: rotate(-5deg) scale(1.05); }
+            100% { transform: rotate(0deg) scale(1); }
+        }
+
+        .slap-emoji {
+            position: absolute;
+            font-size: 3rem;
+            pointer-events: none;
+            z-index: 1000;
+            animation: emojiPop 1s ease-out forwards;
+        }
+
+        @keyframes emojiPop {
+            0% {
+                transform: scale(0) rotate(0deg);
+                opacity: 1;
+            }
+            20% {
+                transform: scale(1.2) rotate(-10deg);
+                opacity: 1;
+            }
+            50% {
+                transform: scale(1) rotate(5deg);
+                opacity: 1;
+            }
+            80% {
+                transform: scale(0.8) rotate(-2deg);
+                opacity: 0.8;
+            }
+            100% {
+                transform: scale(0) rotate(0deg);
+                opacity: 0;
+            }
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        .click-effect {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            background: rgba(255,255,255,0.8);
+            border-radius: 50%;
+            pointer-events: none;
+            animation: clickRipple 0.6s ease-out;
+        }
+
+        @keyframes clickRipple {
+            0% {
+                transform: scale(0);
+                opacity: 1;
+            }
+            100% {
+                transform: scale(4);
+                opacity: 0;
+            }
+        }
+
+        .instructions {
+            color: white;
+            font-size: 1.2rem;
+            margin-top: 2rem;
+            opacity: 0.8;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+        }
+
+        @media (max-width: 768px) {
+            .title {
+                font-size: 2rem;
+            }
+            
+            .uras-image {
+                max-width: 250px;
+            }
+            
+            .counter {
+                font-size: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="title">Uras Tokat Oyunu</h1>
+        <div class="image-container" id="imageContainer">
+            <img src="uras.png" alt="Uras" class="uras-image" id="urasImage">
+        </div>
+        <div class="counter" id="counter">Tıklama Sayısı: 0</div>
+        <p class="instructions">Ekrana tıklayarak tokat atın! 👋</p>
+    </div>
+
+    <script>
+        let clickCount = 0;
+        const imageContainer = document.getElementById('imageContainer');
+        const urasImage = document.getElementById('urasImage');
+        const counter = document.getElementById('counter');
+        const body = document.body;
+
+        // Ses efekti için AudioContext kullanımı
+        function playSlapSound() {
+            try {
+                const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                
+                // Tokat sesi efekti oluştur
+                const oscillator = audioContext.createOscillator();
+                const gainNode = audioContext.createGain();
+                
+                oscillator.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+                
+                // Ses parametreleri
+                oscillator.frequency.setValueAtTime(200, audioContext.currentTime);
+                oscillator.frequency.exponentialRampToValueAtTime(50, audioContext.currentTime + 0.1);
+                
+                gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.1);
+                
+                oscillator.start(audioContext.currentTime);
+                oscillator.stop(audioContext.currentTime + 0.1);
+            } catch (error) {
+                console.log('Ses çalınamadı:', error);
+            }
+        }
+
+        // Tıklama efekti oluştur
+        function createClickEffect(x, y) {
+            const effect = document.createElement('div');
+            effect.className = 'click-effect';
+            effect.style.left = x + 'px';
+            effect.style.top = y + 'px';
+            body.appendChild(effect);
+            
+            setTimeout(() => {
+                body.removeChild(effect);
+            }, 600);
+        }
+
+        // Tokat emojisi oluştur
+        function createSlapEmoji(x, y) {
+            const emoji = document.createElement('div');
+            emoji.className = 'slap-emoji';
+            emoji.textContent = '👋';
+            emoji.style.left = (x - 30) + 'px';
+            emoji.style.top = (y - 30) + 'px';
+            body.appendChild(emoji);
+            
+            setTimeout(() => {
+                if (body.contains(emoji)) {
+                    body.removeChild(emoji);
+                }
+            }, 1000);
+        }
+
+        // Ana tıklama fonksiyonu
+        function handleClick(event) {
+            clickCount++;
+            
+            // Animasyon ekle
+            urasImage.classList.add('slap-animation');
+            
+            // Ses efekti çal
+            playSlapSound();
+            
+            // Tıklama efekti oluştur
+            createClickEffect(event.clientX, event.clientY);
+            
+            // Tokat emojisi oluştur
+            createSlapEmoji(event.clientX, event.clientY);
+            
+            // Sayaç güncelle
+            counter.textContent = `Tıklama Sayısı: ${clickCount}`;
+            
+            // Animasyonu kaldır
+            setTimeout(() => {
+                urasImage.classList.remove('slap-animation');
+            }, 300);
+            
+            // Başarı mesajları
+            if (clickCount === 10) {
+                alert('🎉 Tebrikler! 10 tokat attınız!');
+            } else if (clickCount === 50) {
+                alert('🔥 Harika! 50 tokat! Gerçekten hızlısınız!');
+            } else if (clickCount === 100) {
+                alert('💪 İnanılmaz! 100 tokat! Uras artık çok yorgun! 😅');
+            }
+        }
+
+        // Event listener ekle
+        body.addEventListener('click', handleClick);
+
+        // Sayfa yüklendiğinde hoş geldin mesajı
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                alert('🎮 Uras Tokat Oyununa Hoş Geldiniz!\n\nEkrana tıklayarak tokat atabilirsiniz!');
+            }, 500);
+        });
+    </script>
+</body>
+</html>
