@@ -180,6 +180,7 @@
             position: relative;
             display: none;
             max-width: 300px;
+            width: 300px;
             height: auto;
             border-radius: 20px;
             overflow: hidden;
@@ -190,6 +191,9 @@
             width: 100%;
             height: auto;
             display: block;
+            object-fit: contain;
+            max-width: 100%;
+            max-height: 100%;
         }
 
         @media (max-width: 768px) {
@@ -201,8 +205,18 @@
                 max-width: 250px;
             }
             
+            .video-container {
+                max-width: 250px;
+                width: 250px;
+            }
+            
             .counter {
                 font-size: 1.5rem;
+            }
+            
+            .slap-button {
+                font-size: 1.2rem;
+                padding: 12px 24px;
             }
         }
     </style>
@@ -213,7 +227,7 @@
         <div class="image-container" id="imageContainer">
             <img src="uras.png" alt="Uras" class="uras-image" id="urasImage">
             <div class="video-container" id="videoContainer">
-                <video id="slapVideo" preload="auto">
+                <video id="slapVideo" preload="auto" playsinline webkit-playsinline>
                     <source src="video.mp4" type="video/mp4">
                     Tarayıcınız video oynatmayı desteklemiyor.
                 </video>
@@ -299,9 +313,18 @@
             slapButton.disabled = true;
             slapButton.textContent = '⏳ Video Oynatılıyor...';
             
+            // Mobil uyumluluk için video ayarları
+            slapVideo.setAttribute('playsinline', 'true');
+            slapVideo.setAttribute('webkit-playsinline', 'true');
+            slapVideo.controls = false;
+            
             // Videoyu baştan başlat ve oynat
             slapVideo.currentTime = 0;
-            slapVideo.play();
+            slapVideo.play().catch(error => {
+                console.log('Video oynatma hatası:', error);
+                // Hata durumunda görseli geri getir
+                onVideoEnded();
+            });
         }
 
         // Video bittiğinde çağrılacak fonksiyon
